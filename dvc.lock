@@ -1,0 +1,194 @@
+schema: '2.0'
+stages:
+  make_dataset:
+    cmd: python ./src/data/make_dataset.py ./data/raw/heart.csv
+    deps:
+    - path: data/raw/heart.csv
+      hash: md5
+      md5: ab21f2524241ed14b321bcaf40c8b86e
+      size: 35921
+    - path: src/data/make_dataset.py
+      hash: md5
+      md5: 88b7850e0ede7b893fe91614134ef431
+      size: 1140
+    params:
+      params.yaml:
+        make_dataset.random_state: 42
+        make_dataset.test_size: 0.2
+  build_features:
+    cmd: python ./src/features/build_features.py  ./data/processed/train.csv
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 68f9330b8bfc96c1b20cb7bc4283affe
+      size: 30423
+    - path: src/features/build_features.py
+      hash: md5
+      md5: 150346e0c96d06c016c00d0befcb5fbe
+      size: 2034
+  train_model:
+    cmd: python ./src/models/train_model.py 
+      ./data/processed/train_transformed.csv
+    deps:
+    - path: data/processed/train_transformed.csv
+      hash: md5
+      md5: 2edef26253f574292bd6f642e0180fe6
+      size: 82700
+    - path: src/models/train_model.py
+      hash: md5
+      md5: afe778b231a36af0455e3ef921a01696
+      size: 7036
+    params:
+      params.yaml:
+        train_model.cv:
+          n_splits: 5
+          n_repeats: 1
+          shuffle: true
+          random_state: 42
+        train_model.model: logistic_regression
+        train_model.param_grid:
+          logistic_regression:
+            C:
+            - 0.1
+            - 1.0
+            - 10.0
+            penalty:
+            - l2
+            solver:
+            - lbfgs
+            - liblinear
+            max_iter:
+            - 1000
+            class_weight:
+            - 
+          random_forest:
+            n_estimators:
+            - 100
+            - 200
+            max_depth:
+            - 
+            - 5
+            - 10
+            min_samples_split:
+            - 2
+            - 5
+            min_samples_leaf:
+            - 1
+            - 2
+            bootstrap:
+            - true
+          svm:
+            C:
+            - 0.1
+            - 1.0
+            - 10.0
+            kernel:
+            - rbf
+            - linear
+            gamma:
+            - scale
+            - auto
+          knn:
+            n_neighbors:
+            - 3
+            - 5
+            - 7
+            - 11
+            weights:
+            - uniform
+            - distance
+            p:
+            - 1
+            - 2
+            metric:
+            - minkowski
+          naive_bayes:
+            var_smoothing:
+            - 1e-09
+            - 1e-08
+            - 1e-07
+          decision_tree:
+            criterion:
+            - gini
+            - entropy
+            - log_loss
+            max_depth:
+            - 
+            - 5
+            - 10
+            - 20
+            min_samples_split:
+            - 2
+            - 5
+            - 10
+            min_samples_leaf:
+            - 1
+            - 2
+            - 4
+          gradient_boosting:
+            n_estimators:
+            - 100
+            - 200
+            learning_rate:
+            - 0.05
+            - 0.1
+            max_depth:
+            - 3
+            - 5
+            subsample:
+            - 1.0
+            max_features:
+            - sqrt
+            - 
+          adaboost:
+            n_estimators:
+            - 50
+            - 100
+            - 200
+            learning_rate:
+            - 0.5
+            - 1.0
+          extra_trees:
+            n_estimators:
+            - 100
+            - 200
+            max_depth:
+            - 
+            - 10
+            - 20
+            min_samples_split:
+            - 2
+            - 5
+            min_samples_leaf:
+            - 1
+            - 2
+            bootstrap:
+            - false
+          linear_svc:
+            C:
+            - 0.1
+            - 1.0
+            - 10.0
+            loss:
+            - hinge
+            - squared_hinge
+          xgboost:
+            n_estimators:
+            - 100
+            - 200
+            max_depth:
+            - 3
+            - 5
+            learning_rate:
+            - 0.05
+            - 0.1
+            subsample:
+            - 0.8
+            - 1.0
+            colsample_bytree:
+            - 0.8
+            - 1.0
+        train_model.random_state: 42
+        train_model.scoring: roc_auc
+        train_model.target_column: HeartDisease
+        train_model.test_size: 0.2

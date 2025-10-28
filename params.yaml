@@ -1,0 +1,68 @@
+make_dataset:
+  test_size: 0.2
+  random_state: 42
+train_model:
+  # General settings
+  random_state: 42
+  target_column: "HeartDisease"
+  test_size: 0.2
+  scoring: "roc_auc"  # e.g., 'roc_auc', 'accuracy'
+  model: "logistic_regression"  # choices: 'logistic_regression', 'random_forest', 'svm' , 'knn', 'naive_bayes', 'decision_tree', 'gradient_boosting', 'adaboost', 'extra_trees', 'linear_svc', 'xgboost'
+  cv:
+    n_splits: 5
+    n_repeats: 1   # set >1 for RepeatedStratifiedKFold
+    shuffle: true
+    random_state: 42
+  param_grid:
+    logistic_regression:
+      C: [0.1, 1.0, 10.0]
+      penalty: ["l2"]
+      solver: ["lbfgs", "liblinear"]
+      max_iter: [1000]
+      class_weight: [null]  # null means no class weights
+    random_forest:
+      n_estimators: [100, 200]
+      max_depth: [null, 5, 10]
+      min_samples_split: [2, 5]
+      min_samples_leaf: [1, 2]
+      bootstrap: [true]
+    svm:
+      C: [0.1, 1.0, 10.0]
+      kernel: ["rbf", "linear"]
+      gamma: ["scale", "auto"]
+    knn:
+      n_neighbors: [3, 5, 7, 11]
+      weights: ["uniform", "distance"]
+      p: [1, 2]
+      metric: ["minkowski"]
+    naive_bayes:
+      var_smoothing: [1.0e-09, 1.0e-08, 1.0e-07]
+    decision_tree:
+      criterion: ["gini", "entropy", "log_loss"]
+      max_depth: [null, 5, 10, 20]
+      min_samples_split: [2, 5, 10]
+      min_samples_leaf: [1, 2, 4]
+    gradient_boosting:
+      n_estimators: [100, 200]
+      learning_rate: [0.05, 0.1]
+      max_depth: [3, 5]
+      subsample: [1.0]
+      max_features: ["sqrt", null]
+    adaboost:
+      n_estimators: [50, 100, 200]
+      learning_rate: [0.5, 1.0]
+    extra_trees:
+      n_estimators: [100, 200]
+      max_depth: [null, 10, 20]
+      min_samples_split: [2, 5]
+      min_samples_leaf: [1, 2]
+      bootstrap: [false]
+    linear_svc:
+      C: [0.1, 1.0, 10.0]
+      loss: ["hinge", "squared_hinge"]
+    xgboost:  
+      n_estimators: [100, 200]
+      max_depth: [3, 5]
+      learning_rate: [0.05, 0.1]
+      subsample: [0.8, 1.0]
+      colsample_bytree: [0.8, 1.0]

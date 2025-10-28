@@ -1,0 +1,28 @@
+stages:
+  make_dataset:
+    cmd: python ./src/data/make_dataset.py ./data/raw/heart.csv
+    deps :
+      - src/data/make_dataset.py
+      - data/raw/heart.csv
+    params:
+      - make_dataset.random_state
+      - make_dataset.test_size
+  build_features:
+    cmd: python ./src/features/build_features.py  ./data/processed/train.csv
+    deps:
+      - src/features/build_features.py
+      - data/processed/train.csv
+  train_model:
+    cmd: python ./src/models/train_model.py ./data/processed/train_transformed.csv
+    deps:
+      - src/models/train_model.py
+      - data/processed/train_transformed.csv
+    params:
+      - train_model.random_state
+      - train_model.target_column
+      - train_model.test_size
+      - train_model.scoring 
+      - train_model.model
+      - train_model.cv
+      - train_model.param_grid
+
