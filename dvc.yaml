@@ -1,4 +1,5 @@
 stages:
+
   make_dataset:
     cmd: python ./src/data/make_dataset.py ./data/raw/heart.csv
     deps :
@@ -7,6 +8,7 @@ stages:
     params:
       - make_dataset.random_state
       - make_dataset.test_size
+
   build_features:
     cmd: python ./src/features/build_features.py  ./data/processed/train.csv
     deps:
@@ -26,3 +28,19 @@ stages:
       - train_model.cv
       - train_model.param_grid
 
+  
+  evaluate_model:
+    cmd: python ./src/models/model_evaluation.py ./data/processed/test_data.csv ./models/model.joblib ./models/build_features_transformer.joblib
+    deps:
+      - src/models/model_evaluation.py
+      - data/processed/test.csv
+      - models/model.joblib
+      - models/build_features_transformer.joblib
+        
+        
+
+  register_model:
+    cmd: python ./src/models/register_model.py ./reports/model_info.json
+    deps:
+      - src/models/register_model.py
+      - reports/model_info.json
