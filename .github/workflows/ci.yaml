@@ -27,23 +27,20 @@ jobs :
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
-      - name : Configure DVC Google Drive credentials
+      - name : Configure DVC Google Drive Service Account
         env :
-          GDRIVE_CLIENT_ID : ${{ secrets.GDRIVE_CLIENT_ID }}
-          GDRIVE_CLIENT_SECRET : ${{ secrets.GDRIVE_CLIENT_SECRET }}
+          GDRIVE_CREDENTIALS_DATA : ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
         run : |
-          mkdir -p .dvc
-          cat > .dvc/config.local << EOF
-          ['remote "myremote"']
-              gdrive_client_id = ${GDRIVE_CLIENT_ID}
-              gdrive_client_secret = ${GDRIVE_CLIENT_SECRET}
-          EOF
-          echo "✓ DVC Google Drive credentials configured"
+          echo "Setting up Google Drive Service Account..."
+          echo "$GDRIVE_CREDENTIALS_DATA" > gdrive-credentials.json
+          export GOOGLE_APPLICATION_CREDENTIALS="gdrive-credentials.json"
+          echo "✓ Service Account credentials configured"
           
       - name : Pull data from DVC Google Drive
-        continue-on-error: false
+        env :
+          GOOGLE_APPLICATION_CREDENTIALS : gdrive-credentials.json
         run : |
-          echo "Pulling data from Google Drive..."
+          echo "Pulling data from Google Drive using Service Account..."
           dvc pull -v
           echo "✓ Data successfully pulled from Google Drive"
           
