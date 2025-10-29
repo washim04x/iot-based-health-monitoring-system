@@ -93,7 +93,7 @@ def predict():
         return render_template('index.html', prediction=int(result[0]))
         
     except Exception as e:
-        print(f"Error during prediction: {e}")
+        print(f"Error during prediction : {e}")
         return render_template('index.html', prediction=None, error=str(e))
 
 if __name__ == '__main__':
