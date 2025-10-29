@@ -42,16 +42,15 @@ def load_model_info(file_path) :
         logger.error('Error occurred while loading the model info: %s' , e)
         raise
 
-def registered_model(model_info,model_name):
+def registered_model(model_info, model_name, artifact_path):
     """Register the model in MLflow Model Registry."""
     run_id = model_info['run_id']
-    model_path = model_info['model_path']
 
-    logger.debug('Registering model with run ID: %s and path: %s', run_id, model_path)
+    logger.debug('Registering %s with run ID: %s and artifact path: %s', model_name, run_id, artifact_path)
 
     try:
         model_version = mlflow.register_model(
-            model_uri=f"runs:/{run_id}/{model_path}",
+            model_uri=f"runs:/{run_id}/{artifact_path}",
             name=model_name
         )
         client = mlflow.tracking.MlflowClient()
@@ -60,9 +59,9 @@ def registered_model(model_info,model_name):
             version=model_version.version,
             stage="Staging",
         )
-        logger.info('Model registered successfully with name: %s', model_name)
+        logger.info('%s version %s registered and promoted to Staging', model_name, model_version.version)
     except Exception as e:
-        logger.error('Error occurred while registering the model: %s', e)
+        logger.error('Error occurred while registering %s: %s', model_name, e)
         raise
 
 if __name__ == "__main__":
@@ -70,6 +69,9 @@ if __name__ == "__main__":
     home_dir = curr_dir.parent.parent.parent
     model_info_path = home_dir.as_posix() + "/reports/model_info.json"
     model_info = load_model_info(model_info_path)
-    model_name = "model"
-
-    registered_model(model_info,model_name) 
+    
+    # Register and transition the main model to Staging
+    registered_model(model_info, "model", "model")
+    
+    # Register and transition the transformer to Staging
+    registered_model(model_info, "transformer", "transformer") 

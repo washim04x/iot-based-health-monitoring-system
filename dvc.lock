@@ -24,8 +24,8 @@ stages:
       size: 30423
     - path: src/features/build_features.py
       hash: md5
-      md5: 150346e0c96d06c016c00d0befcb5fbe
-      size: 2034
+      md5: 827b290c9b5ddcdfceb0e9ea88b3f704
+      size: 2181
   train_model:
     cmd: python ./src/models/train_model.py 
       ./data/processed/train_transformed.csv
@@ -193,7 +193,7 @@ stages:
         train_model.target_column: HeartDisease
         train_model.test_size: 0.2
   evaluate_model:
-    cmd: python ./src/models/model_evaluation.py ./data/processed/test_data.csv 
+    cmd: python ./src/models/model_evaluation.py ./data/processed/test.csv 
       ./models/model.joblib ./models/build_features_transformer.joblib
     deps:
     - path: data/processed/test.csv
@@ -202,24 +202,24 @@ stages:
       size: 7674
     - path: models/build_features_transformer.joblib
       hash: md5
-      md5: 0b228219b4487ed53c0d3afa3a16db8b
-      size: 4865
+      md5: d628772a72f101a4ab410826357294c5
+      size: 4817
     - path: models/model.joblib
       hash: md5
       md5: b82f330089a36b96916b944a2f6076b2
       size: 120217
     - path: src/models/model_evaluation.py
       hash: md5
-      md5: 6e98589e55c2399a4db943b3717f7002
-      size: 5539
+      md5: d6aa20dfb170acd0015cb57f48f8cec5
+      size: 5672
   register_model:
     cmd: python ./src/models/register_model.py ./reports/model_info.json
     deps:
     - path: reports/model_info.json
       hash: md5
-      md5: 54af13b21e7449750e622a7b05cc3358
+      md5: 19f2ebec60a83480484acf34ffd27334
       size: 150
     - path: src/models/register_model.py
       hash: md5
-      md5: 0168eb650f6cb3744544e33689c4e865
-      size: 2458
+      md5: edb9f6b069cb3e70681fd48e5a31260b
+      size: 2658

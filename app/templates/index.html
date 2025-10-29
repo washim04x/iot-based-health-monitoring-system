@@ -1,0 +1,167 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CardioAI - Heart Disease Prediction System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <span class="heart-icon"></span>
+                CardioAI
+                <span class="heart-icon"></span>
+            </h1>
+            <p>Advanced AI-Powered Heart Disease Prediction System</p>
+        </div>
+
+        <div class="main-content">
+            <div class="form-card">
+                <h2> Patient Information</h2>
+                <form method="POST" action="/predict">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="Age">Age <span class="feature-badge">Numerical</span></label>
+                            <input type="number" id="Age" name="Age" step="1" min="1" max="120" required placeholder="Enter age">
+                        </div>
+                        <div class="form-group">
+                            <label for="Sex">Sex <span class="feature-badge">Categorical</span></label>
+                            <select id="Sex" name="Sex" required>
+                                <option value="">Select...</option>
+                                <option value="M">Male (M)</option>
+                                <option value="F">Female (F)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ChestPainType">Chest Pain Type <span class="feature-badge">Categorical</span></label>
+                            <select id="ChestPainType" name="ChestPainType" required>
+                                <option value="">Select...</option>
+                                <option value="ATA">ATA - Atypical Angina</option>
+                                <option value="NAP">NAP - Non-Anginal Pain</option>
+                                <option value="ASY">ASY - Asymptomatic</option>
+                                <option value="TA">TA - Typical Angina</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="RestingBP">Resting BP (mm Hg) <span class="feature-badge">Numerical</span></label>
+                            <input type="number" id="RestingBP" name="RestingBP" step="1" min="50" max="250" required placeholder="e.g., 120">
+                        </div>
+                        <div class="form-group">
+                            <label for="Cholesterol">Cholesterol (mg/dL) <span class="feature-badge">Numerical</span></label>
+                            <input type="number" id="Cholesterol" name="Cholesterol" step="1" min="0" max="600" required placeholder="e.g., 200">
+                        </div>
+                        <div class="form-group">
+                            <label for="FastingBS">Fasting Blood Sugar > 120 mg/dL <span class="feature-badge">Categorical</span></label>
+                            <select id="FastingBS" name="FastingBS" required>
+                                <option value="">Select...</option>
+                                <option value="0">No ( 120 mg/dL)</option>
+                                <option value="1">Yes (> 120 mg/dL)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="RestingECG">Resting ECG <span class="feature-badge">Categorical</span></label>
+                            <select id="RestingECG" name="RestingECG" required>
+                                <option value="">Select...</option>
+                                <option value="Normal">Normal</option>
+                                <option value="ST">ST - ST-T wave abnormality</option>
+                                <option value="LVH">LVH - Left ventricular hypertrophy</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="MaxHR">Max Heart Rate <span class="feature-badge">Numerical</span></label>
+                            <input type="number" id="MaxHR" name="MaxHR" step="1" min="50" max="220" required placeholder="e.g., 150">
+                        </div>
+                        <div class="form-group">
+                            <label for="ExerciseAngina">Exercise-Induced Angina <span class="feature-badge">Categorical</span></label>
+                            <select id="ExerciseAngina" name="ExerciseAngina" required>
+                                <option value="">Select...</option>
+                                <option value="N">No (N)</option>
+                                <option value="Y">Yes (Y)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="Oldpeak">Oldpeak (ST Depression) <span class="feature-badge">Numerical</span></label>
+                            <input type="number" id="Oldpeak" name="Oldpeak" step="0.1" min="-5" max="10" required placeholder="e.g., 1.0">
+                        </div>
+                        <div class="form-group">
+                            <label for="ST_Slope">ST Slope <span class="feature-badge">Categorical</span></label>
+                            <select id="ST_Slope" name="ST_Slope" required>
+                                <option value="">Select...</option>
+                                <option value="Up">Up - Upsloping</option>
+                                <option value="Flat">Flat - Flat</option>
+                                <option value="Down">Down - Downsloping</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn"> Analyze Heart Health</button>
+                </form>
+            </div>
+            <div class="result-card">
+                {% if prediction is not none %}
+                    {% if prediction == 0 %}
+                        <div class="result-icon"></div>
+                        <h2 class="result-title status-healthy">Low Risk Detected</h2>
+                        <p class="result-description">Based on the analysis of your health parameters, our AI model indicates a <strong>low probability</strong> of heart disease. Your heart health appears to be good!</p>
+                        <div class="progress-circle">
+                            <svg width="200" height="200">
+                                <circle class="progress-bg" cx="100" cy="100" r="90"></circle>
+                                <circle class="progress-bar" cx="100" cy="100" r="90" style="stroke: #10b981; stroke-dasharray: 565; stroke-dashoffset: 141;"></circle>
+                            </svg>
+                            <div class="progress-text" style="color: #10b981;">75%</div>
+                        </div>
+                        <div class="health-metrics">
+                            <div class="metric-item"><div class="metric-label">Risk Level</div><div class="metric-value" style="color: #10b981;">Low</div></div>
+                            <div class="metric-item"><div class="metric-label">Status</div><div class="metric-value" style="color: #10b981;">Healthy</div></div>
+                            <div class="metric-item"><div class="metric-label">Prediction</div><div class="metric-value">No Disease</div></div>
+                            <div class="metric-item"><div class="metric-label">Confidence</div><div class="metric-value">High</div></div>
+                        </div>
+                        <p style="margin-top: 30px; text-align: center; color: #666; font-size: 0.95rem;"> <strong>Recommendation:</strong> Maintain a healthy lifestyle with regular exercise and balanced diet. Continue regular health check-ups.</p>
+                    {% else %}
+                        <div class="result-icon"></div>
+                        <h2 class="result-title status-risk">High Risk Detected</h2>
+                        <p class="result-description">Based on the analysis of your health parameters, our AI model indicates a <strong>high probability</strong> of heart disease. Immediate medical consultation is recommended.</p>
+                        <div class="progress-circle">
+                            <svg width="200" height="200">
+                                <circle class="progress-bg" cx="100" cy="100" r="90"></circle>
+                                <circle class="progress-bar" cx="100" cy="100" r="90" style="stroke: #ef4444; stroke-dasharray: 565; stroke-dashoffset: 423;"></circle>
+                            </svg>
+                            <div class="progress-text" style="color: #ef4444;">25%</div>
+                        </div>
+                        <div class="health-metrics">
+                            <div class="metric-item"><div class="metric-label">Risk Level</div><div class="metric-value" style="color: #ef4444;">High</div></div>
+                            <div class="metric-item"><div class="metric-label">Status</div><div class="metric-value" style="color: #ef4444;">At Risk</div></div>
+                            <div class="metric-item"><div class="metric-label">Prediction</div><div class="metric-value">Disease Detected</div></div>
+                            <div class="metric-item"><div class="metric-label">Confidence</div><div class="metric-value">High</div></div>
+                        </div>
+                        <p style="margin-top: 30px; text-align: center; color: #666; font-size: 0.95rem;"> <strong>Important:</strong> This is a screening tool. Please consult a cardiologist immediately for proper diagnosis and treatment. Early intervention can save lives.</p>
+                    {% endif %}
+                    <script>window.hasPrediction = true;</script>
+                {% else %}
+                    <div class="waiting-state">
+                        <div class="icon"></div>
+                        <h3>Ready to Analyze</h3>
+                        <p>Fill in the patient information form and click "Analyze Heart Health" to get AI-powered predictions.</p>
+                        <div style="margin-top: 40px;"><p style="font-size: 0.95rem; color: #999;">Our advanced machine learning model analyzes <strong>11 critical health parameters</strong> to provide accurate heart disease risk assessment.</p></div>
+                        <div style="margin-top: 40px; text-align: left;">
+                            <h4 style="color: #667eea; margin-bottom: 15px; text-align: center;"> System Features</h4>
+                            <ul style="list-style: none; padding: 0;">
+                                <li style="padding: 10px; margin: 5px 0; background: #f8f9fa; border-radius: 8px;"> <strong>AI-Powered Analysis</strong> - Advanced machine learning algorithms</li>
+                                <li style="padding: 10px; margin: 5px 0; background: #f8f9fa; border-radius: 8px;"> <strong>Instant Results</strong> - Get predictions in seconds</li>
+                                <li style="padding: 10px; margin: 5px 0; background: #f8f9fa; border-radius: 8px;"> <strong>Comprehensive Assessment</strong> - Multi-parameter analysis</li>
+                                <li style="padding: 10px; margin: 5px 0; background: #f8f9fa; border-radius: 8px;"> <strong>Secure & Private</strong> - Your data is protected</li>
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="footer">
+            <p> CardioAI - Powered by Machine Learning & MLflow</p>
+            <p><strong>Disclaimer:</strong> This tool is for screening purposes only and should not replace professional medical advice.</p>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

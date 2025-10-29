@@ -51,9 +51,10 @@ def load_model(model_path):
 
 def evaluate_model(model, transformer, data):
     """Evaluate the model and log metrics."""
-    data_transformed = transformer.transform(data)
-    X_test = data_transformed.drop(columns=["HeartDisease"])
-    y_test = data_transformed["HeartDisease"]
+    
+    X_test = data.drop(columns=["HeartDisease"])
+    X_test = transformer.transform(X_test)
+    y_test = data["HeartDisease"]
 
     y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
@@ -141,7 +142,9 @@ def main():
 
             # Log model to MLflow (matching working mlops-min-project pattern)
             mlflow.sklearn.log_model(clf, "model")
-            logger.debug("Model logged successfully to MLflow")
+            # Log transformer as a separate model for easy loading
+            mlflow.sklearn.log_model(features_transformer, "transformer")
+            logger.debug("Model and transformer logged successfully to MLflow")
 
             # Log artifacts
             mlflow.log_artifact("reports/model_evaluation_metrics.json", artifact_path="model_evaluation")

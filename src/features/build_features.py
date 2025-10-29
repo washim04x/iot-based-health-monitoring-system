@@ -10,19 +10,21 @@ def column_transformer(train_data):
     """Create a column transformer for feature engineering."""
     # label encoding for categorical features and scaling and normalization for numerical features
     # label encoding for categorical features and scaling and normalization for numerical features
+    x_train= train_data.drop(columns=["HeartDisease"])
+    y_train= train_data["HeartDisease"]
     trf = ColumnTransformer(
         [
             ("label_encoding", OrdinalEncoder(dtype="int64"), [1,2,6,8,10]), 
             ("scaling",        StandardScaler(),             [0,3,4,7]),
             ("normalization",  MinMaxScaler(),               [9]),
-            ("keep_int",       "passthrough",                [5,11]),
+            ("keep_int",       "passthrough",                [5]),
         ],
         remainder="drop",
         verbose_feature_names_out=False
     ).set_output(transform="pandas")
 
-    train_transformed_data = trf.fit_transform(train_data)
-    
+    train_transformed_data = trf.fit_transform(x_train)
+    train_transformed_data["HeartDisease"] = y_train.values 
 
 
     return train_transformed_data, trf

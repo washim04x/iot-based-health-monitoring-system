@@ -1,5 +1,4 @@
 stages:
-
   make_dataset:
     cmd: python ./src/data/make_dataset.py ./data/raw/heart.csv
     deps :
@@ -30,7 +29,7 @@ stages:
 
   
   evaluate_model:
-    cmd: python ./src/models/model_evaluation.py ./data/processed/test_data.csv ./models/model.joblib ./models/build_features_transformer.joblib
+    cmd: python ./src/models/model_evaluation.py ./data/processed/test.csv ./models/model.joblib ./models/build_features_transformer.joblib
     deps:
       - src/models/model_evaluation.py
       - data/processed/test.csv
