@@ -45,7 +45,7 @@ stages:
           n_repeats: 1
           shuffle: true
           random_state: 42
-        train_model.model: xgboost
+        train_model.model: logistic_regression
         train_model.param_grid:
           logistic_regression:
             C:
