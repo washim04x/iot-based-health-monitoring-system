@@ -3,10 +3,11 @@ import mlflow
 
 def promote_model():
 
-    dagshub_token = os.getenv("iot-dagshub-key")
+    # Try both DAGSHUB_PAT (CI) and iot-dagshub-key (local) environment variables
+    dagshub_token = os.getenv("IOT_DAGSHUB_KEY")
     if not dagshub_token:
-        raise EnvironmentError("DAGSHUB_KEY environment variable is not set")
-    
+        raise EnvironmentError("IOT_DAGSHUB_KEY environment variable is not set")
+
     os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_token
     os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_token
 

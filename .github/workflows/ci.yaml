@@ -1,0 +1,73 @@
+name : CI pipeline
+
+on : push
+
+jobs :
+  project-ci-test :
+    runs-on: ubuntu-latest
+    steps :
+      - name : Checkout repository
+        uses : actions/checkout@v2
+        
+      - name : Set up Python
+        uses : actions/setup-python@v2
+        with :
+          python-version : '3.11'
+          
+      - name : Cache pip dependencies
+        uses : actions/cache@v3
+        with :
+          path : ~/.cache/pip
+          key : ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys : |
+            ${{ runner.os }}-pip-
+            
+      - name : Install dependencies
+        run : |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name : Run pipeline
+        env :
+          DAGSHUB_PAT : ${{ secrets.IOT_DAGSHUB_KEY }}
+        run : |
+          dvc repro
+          
+      - name : Run model tests
+        id: tests
+        env :
+          DAGSHUB_PAT : ${{ secrets.IOT_DAGSHUB_KEY }}
+        run : |
+          echo "Running model performance tests..."
+          if python -m unittest tests/test_model.py; then
+            echo "✓ Tests passed - new model is better than production model"
+            echo "test_result=passed" >> $GITHUB_OUTPUT
+          else
+            echo "✗ Tests failed - production model is still better"
+            echo "ℹ Skipping model promotion - keeping current production model"
+            echo "test_result=failed" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
+        
+      - name : Promote model to production
+        if : steps.tests.outputs.test_result == 'passed'
+        env :
+          DAGSHUB_PAT : ${{ secrets.IOT_DAGSHUB_KEY }}
+        run : |
+          echo "🚀 Promoting model to Production..."
+          python scripts/promote_model.py
+          echo "✓ Model successfully promoted to Production!"
+          
+      - name : Skip promotion message
+        if : steps.tests.outputs.test_result == 'failed'
+        run : |
+          echo "ℹ Model promotion skipped"
+          echo "The current production model performs better than the new staging model."
+          echo "No changes were made to the production environment."
+
+      - name : Run Flask app tests
+        if : success()
+        env :
+          DAGSHUB_PAT : ${{ secrets.IOT_DAGSHUB_KEY }}
+        run : |
+          python -m unittest tests/test_flask_app.py

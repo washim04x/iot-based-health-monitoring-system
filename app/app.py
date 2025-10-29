@@ -3,7 +3,7 @@ import mlflow
 import os
 
 
-dagshub_key = os.getenv("iot-dagshub-key")
+dagshub_key = os.getenv("IOT_DAGSHUB_KEY")
 if not dagshub_key:
     raise ValueError("DAGSHUB_KEY environment variable not set")
 os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_key
