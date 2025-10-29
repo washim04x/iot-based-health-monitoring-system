@@ -27,16 +27,33 @@ jobs :
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
+      - name : Configure DVC Google Drive credentials
+        env :
+          GDRIVE_CLIENT_ID : ${{ secrets.GDRIVE_CLIENT_ID }}
+          GDRIVE_CLIENT_SECRET : ${{ secrets.GDRIVE_CLIENT_SECRET }}
+        run : |
+          mkdir -p .dvc
+          cat > .dvc/config.local << EOF
+          ['remote "myremote"']
+              gdrive_client_id = ${GDRIVE_CLIENT_ID}
+              gdrive_client_secret = ${GDRIVE_CLIENT_SECRET}
+          EOF
+          echo "✓ DVC Google Drive credentials configured"
+          
+      - name : Pull data from DVC
+        run : |
+          dvc pull || echo "⚠ No remote data available, using local data"
+          
       - name : Run pipeline
         env :
-          DAGSHUB_PAT : ${{ secrets.IOT_DAGSHUB_KEY }}
+          DAGSHUB_PAT : ${{ secrets.DAGSHUB_PAT }}
         run : |
           dvc repro
           
       - name : Run model tests
         id: tests
         env :
-          DAGSHUB_PAT : ${{ secrets.IOT_DAGSHUB_KEY }}
+          DAGSHUB_PAT : ${{ secrets.DAGSHUB_PAT }}
         run : |
           echo "Running model performance tests..."
           if python -m unittest tests/test_model.py; then
@@ -52,7 +69,7 @@ jobs :
       - name : Promote model to production
         if : steps.tests.outputs.test_result == 'passed'
         env :
-          DAGSHUB_PAT : ${{ secrets.IOT_DAGSHUB_KEY }}
+          DAGSHUB_PAT : ${{ secrets.DAGSHUB_PAT }}
         run : |
           echo "🚀 Promoting model to Production..."
           python scripts/promote_model.py
@@ -68,6 +85,6 @@ jobs :
       - name : Run Flask app tests
         if : success()
         env :
-          DAGSHUB_PAT : ${{ secrets.IOT_DAGSHUB_KEY }}
+          DAGSHUB_PAT : ${{ secrets.DAGSHUB_PAT }}
         run : |
           python -m unittest tests/test_flask_app.py
