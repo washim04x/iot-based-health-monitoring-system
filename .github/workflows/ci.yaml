@@ -33,12 +33,10 @@ jobs :
         run : |
           echo "Setting up Google Drive Service Account..."
           echo "$GDRIVE_CREDENTIALS_DATA" > gdrive-credentials.json
-          export GOOGLE_APPLICATION_CREDENTIALS="gdrive-credentials.json"
+          dvc remote modify myremote gdrive_service_account_json_file_path gdrive-credentials.json
           echo "✓ Service Account credentials configured"
           
       - name : Pull data from DVC Google Drive
-        env :
-          GOOGLE_APPLICATION_CREDENTIALS : gdrive-credentials.json
         run : |
           echo "Pulling data from Google Drive using Service Account..."
           dvc pull -v
