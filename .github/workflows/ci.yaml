@@ -87,3 +87,25 @@ jobs :
           IOT_DAGSHUB_KEY : ${{ secrets.IOT_DAGSHUB_KEY  }}
         run : |
           python -m unittest tests/test_flask_app.py
+      - name : Docker login
+        if : success()
+        uses : docker/login-action@v2
+        with :
+          username : ${{ secrets.DOCKER_USERNAME }}
+          password : ${{ secrets.DOCKER_KEY }}
+      - name : Build Docker image
+        if : success()
+        run : |
+          docker build -t ${{secrets.DOCKER_USERNAME}}/iot-health-monitoring-system:latest .
+
+      - name : Tag Docker image
+        if : success()
+        run : |
+          docker tag ${{secrets.DOCKER_USERNAME}}/iot-health-monitoring-system:latest ${{secrets.DOCKER_USERNAME}}/iot-health-monitoring-system:v1
+
+      - name : Push Docker image to DockerHub
+        if : success()
+        run : |
+          docker push ${{secrets.DOCKER_USERNAME}}/iot-health-monitoring-system:v1
+
+      

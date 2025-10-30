@@ -1,15 +1,22 @@
-from flask import Flask,render_template,request
+from flask import Flask, render_template, request, jsonify
 import mlflow
 import os
+import threading
 
 
-dagshub_key = os.getenv("IOT_DAGSHUB_KEY")
-if not dagshub_key:
-    raise ValueError("DAGSHUB_KEY environment variable not set")
-os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_key
-os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_key
+# Lazy model loading: don't block app startup
+_model = None
+_transformer = None
+_load_lock = threading.Lock()
+_warmup_started = False
 
-mlflow.set_tracking_uri("https://dagshub.com/washim04x/iot-based-health-monitoring-system.mlflow")
+def _setup_mlflow():
+    dagshub_key = os.getenv("IOT_DAGSHUB_KEY")
+    if not dagshub_key:
+        raise ValueError("IOT_DAGSHUB_KEY environment variable not set")
+    os.environ["MLFLOW_TRACKING_USERNAME"] = dagshub_key
+    os.environ["MLFLOW_TRACKING_PASSWORD"] = dagshub_key
+    mlflow.set_tracking_uri("https://dagshub.com/washim04x/iot-based-health-monitoring-system.mlflow")
 
 def get_latest_model_version(model_name):
     client = mlflow.tracking.MlflowClient()
@@ -19,20 +26,60 @@ def get_latest_model_version(model_name):
     latest_version = max(versions, key=lambda v: v.version)
     return latest_version.version
 
-#load model
-model_name = "model"
-model_version = get_latest_model_version(model_name)
-model_uri = f"models:/{model_name}/{model_version}"
-model = mlflow.sklearn.load_model(model_uri)
+def _load_models():
+    global _model, _transformer
+    _setup_mlflow()
 
-#load transformer
-transformer_name = "transformer"
-transformer_version = get_latest_model_version(transformer_name)
-transformer_uri = f"models:/{transformer_name}/{transformer_version}"
-transformer = mlflow.sklearn.load_model(transformer_uri)
+    # Load latest Production model
+    model_name = "model"
+    model_version = get_latest_model_version(model_name)
+    model_uri = f"models:/{model_name}/{model_version}"
+    loaded_model = mlflow.sklearn.load_model(model_uri)
+
+    transformer_name = "transformer"
+    transformer_version = get_latest_model_version(transformer_name)
+    transformer_uri = f"models:/{transformer_name}/{transformer_version}"
+    loaded_transformer = mlflow.sklearn.load_model(transformer_uri)
+
+    _model = loaded_model
+    _transformer = loaded_transformer
+
+def _ensure_models_loaded():
+    if _model is not None and _transformer is not None:
+        return
+    with _load_lock:
+        if _model is None or _transformer is None:
+            _load_models()
+
+def _warmup_async():
+    global _warmup_started
+    if _warmup_started:
+        return
+    _warmup_started = True
+    def _bg():
+        try:
+            _ensure_models_loaded()
+            print("[warmup] Models loaded successfully")
+        except Exception as e:
+            print(f"[warmup] Model warmup failed: {e}")
+    threading.Thread(target=_bg, daemon=True).start()
 
 
 app = Flask(__name__)
+
+# kick off warmup after app is created if requested
+if os.getenv("PRELOAD_MODELS", "1") == "1":
+    _warmup_async()
+@app.route('/health')
+def health():
+    ready = _model is not None and _transformer is not None
+    status = 200 if ready else 503
+    return jsonify({"status": "ok", "ready": ready}), status
+
+@app.route('/ready')
+def ready():
+    ready = _model is not None and _transformer is not None
+    return ("ready", 200) if ready else ("warming", 503)
 
 @app.route('/')
 def home():
@@ -76,22 +123,27 @@ def predict():
         print(input_df)
         print("Data types:", input_df.dtypes)
         
+        # Ensure models are available (lazy load on demand)
+        _ensure_models_loaded()
+        if _model is None or _transformer is None:
+            return render_template('index.html', prediction=None, error='Model not ready yet, please retry in a moment.')
+
         # Transform features using the transformer
-        features_transformed = transformer.transform(input_df)
+        features_transformed = _transformer.transform(input_df)
 
         print("Transformed Features:")
         print(features_transformed)
 
         # Predict heart disease
-        result = model.predict(features_transformed)
-        
+        result = _model.predict(features_transformed)
+
         print("Prediction Result:")
         print(result)
         print(result[0])
 
         # Return result (0 = No disease, 1 = Disease)
         return render_template('index.html', prediction=int(result[0]))
-        
+
     except Exception as e:
         print(f"Error during prediction : {e}")
         return render_template('index.html', prediction=None, error=str(e))
