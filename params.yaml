@@ -1,5 +1,5 @@
 make_dataset:
-  test_size: 0.25
+  test_size: 0.2
   random_state: 42
 train_model:
   # General settings
@@ -7,7 +7,7 @@ train_model:
   target_column: "HeartDisease"
   test_size: 0.2
   scoring: "roc_auc"  # e.g., 'roc_auc', 'accuracy'
-  model: "logistic_regression"  # choices: 'logistic_regression', 'random_forest', 'svm' , 'knn', 'naive_bayes', 'decision_tree', 'gradient_boosting', 'adaboost', 'extra_trees', 'linear_svc', 'xgboost'
+  model: "random_forest"  # choices: 'logistic_regression', 'random_forest', 'svm' , 'knn', 'naive_bayes', 'decision_tree', 'gradient_boosting', 'adaboost', 'extra_trees', 'linear_svc', 'xgboost'
   cv:
     n_splits: 5
     n_repeats: 1   # set >1 for RepeatedStratifiedKFold
